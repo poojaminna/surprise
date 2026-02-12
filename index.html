@@ -19,7 +19,6 @@ body {
 
 .container {
     text-align: center;
-    position: relative;
 }
 
 h1 {
@@ -28,7 +27,7 @@ h1 {
     font-size: 2.5rem;
 }
 
-/* Button row */
+/* Buttons container */
 .button-row {
     display: flex;
     justify-content: center;
@@ -53,10 +52,9 @@ button {
     color: white;
 }
 
-/* No wrapper (invisible proximity zone) */
+/* No button wrapper (for easier positioning) */
 .no-wrapper {
-    position: relative;
-    padding: 40px; /* ~1cm invisible space */
+    position: absolute;
 }
 
 /* No button */
@@ -84,31 +82,68 @@ button {
 <script>
 const wrapper = document.getElementById("noWrapper");
 
-let posX = 0;
-let posY = 0;
+// Initial button position
+const initialRect = wrapper.getBoundingClientRect();
+let posX = initialRect.left;
+let posY = initialRect.top;
 
-// Convert wrapper to absolute after layout loads
+// Offset from cursor (2cm ~ 80px)
+const offset = 80;
+
+// Screen size helper
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(value, max));
+}
+
+// Make wrapper absolute after layout loads
 window.onload = () => {
-    const rect = wrapper.getBoundingClientRect();
-    posX = rect.left;
-    posY = rect.top;
-
     wrapper.style.position = "absolute";
     wrapper.style.left = posX + "px";
     wrapper.style.top = posY + "px";
 };
 
-document.addEventListener("mousemove", function(e) {
-
+document.addEventListener("mousemove", (e) => {
     const rect = wrapper.getBoundingClientRect();
+    const cursorX = e.clientX;
+    const cursorY = e.clientY;
 
+    // Distance from cursor to center of button
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const dx = e.clientX - centerX;
-    const dy = e.clientY - centerY;
+    const dx = cursorX - centerX;
+    const dy = cursorY - centerY;
+    const distance = Math.sqrt(dx*dx + dy*dy);
 
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const proximity = 150;
+    const proximity = 150; // start following cursor
 
-    if (distance < proxim
+    if(distance < proximity){
+        // New position = cursor + offset diagonally
+        let newX = cursorX + offset;
+        let newY = cursorY + offset;
+
+        // Clamp to screen boundaries
+        const maxX = window.innerWidth - rect.width;
+        const maxY = window.innerHeight - rect.height;
+
+        posX = clamp(newX, 0, maxX);
+        posY = clamp(newY, 0, maxY);
+
+        wrapper.style.left = posX + "px";
+        wrapper.style.top = posY + "px";
+    }
+});
+
+// Yes button click
+document.getElementById("yesBtn").addEventListener("click", () => {
+    document.body.innerHTML = `
+    <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#ff9a9e,#fad0c4);flex-direction:column;">
+        <h1 style="color:white;font-size:3rem;">YAYYYYY 💖</h1>
+        <h2 style="color:white;">I knew you'd say yes 😘</h2>
+    </div>
+    `;
+});
+</script>
+
+</body>
+</html>
