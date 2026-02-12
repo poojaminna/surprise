@@ -41,7 +41,7 @@ h1 {
 #noBtn {
   background-color: white;
   color: #ff4d6d;
-  position: absolute; /* Free to move anywhere */
+  position: absolute;
 }
 </style>
 </head>
@@ -49,25 +49,35 @@ h1 {
 
 <h1>Will You Be My Valentine? 💕</h1>
 <button id="yesBtn">Yes 💖</button>
-<button id="noBtn" style="left: 180px; top: 50%;">No 💔</button>
+<button id="noBtn">No 💔</button>
 
 <script>
+const yesBtn = document.getElementById('yesBtn');
 const noBtn = document.getElementById('noBtn');
-const offsetDistance = 80; // ~2cm
+
+const offsetDistance = 80; // 2cm
 let offsetX = offsetDistance;
 let offsetY = offsetDistance;
-let targetX = parseFloat(noBtn.style.left);
-let targetY = parseFloat(noBtn.style.top);
 
-// Smooth gliding factor
+let targetX = 0;
+let targetY = 0;
 const speed = 0.15;
 
-// Update loop
+// Set initial position of No button **next to Yes button** after page loads
+function setInitialPosition() {
+  const yesRect = yesBtn.getBoundingClientRect();
+  targetX = yesRect.right + 20; // 20px gap to the right
+  targetY = yesRect.top;
+  noBtn.style.left = targetX + 'px';
+  noBtn.style.top = targetY + 'px';
+}
+window.addEventListener('load', setInitialPosition);
+
+// Smooth animation loop
 function animate() {
-  // Smoothly move to target
   const currentX = parseFloat(noBtn.style.left);
   const currentY = parseFloat(noBtn.style.top);
-  
+
   const dx = targetX - currentX;
   const dy = targetY - currentY;
 
@@ -76,11 +86,9 @@ function animate() {
 
   requestAnimationFrame(animate);
 }
-
-// Start animation
 animate();
 
-// Mouse move detection
+// Mouse tracking
 document.addEventListener('mousemove', (e) => {
   const rect = noBtn.getBoundingClientRect();
   const cursorX = e.clientX;
@@ -90,23 +98,25 @@ document.addEventListener('mousemove', (e) => {
   const centerY = rect.top + rect.height / 2;
 
   const distance = Math.sqrt((cursorX - centerX)**2 + (cursorY - centerY)**2);
-  const proximity = 150; // start following when close
+  const proximity = 150;
 
   if(distance < proximity){
-    // Default: bottom-right
     let newX = cursorX + offsetX;
     let newY = cursorY + offsetY;
 
-    const maxX = window.innerWidth - rect.width;
-    const maxY = window.innerHeight - rect.height;
     const minX = 0;
     const minY = 0;
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
 
-    // If would go off screen, invert direction
-    if(newX > maxX) offsetX = -offsetDistance;
-    if(newY > maxY) offsetY = -offsetDistance;
-    if(newX < minX) offsetX = offsetDistance;
-    if(newY < minY) offsetY = offsetDistance;
+    // Right-edge check
+    if(newX + rect.width > window.innerWidth) offsetX = -offsetDistance;
+    // Left-edge check
+    if(newX < 0) offsetX = offsetDistance;
+    // Bottom-edge check
+    if(newY + rect.height > window.innerHeight) offsetY = -offsetDistance;
+    // Top-edge check
+    if(newY < 0) offsetY = offsetDistance;
 
     targetX = cursorX + offsetX;
     targetY = cursorY + offsetY;
@@ -114,7 +124,7 @@ document.addEventListener('mousemove', (e) => {
 });
 
 // Yes button click
-document.getElementById('yesBtn').addEventListener('click', () => {
+yesBtn.addEventListener('click', () => {
   document.body.innerHTML = `
     <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#ff9a9e,#fad0c4);flex-direction:column;">
       <h1 style="color:white;font-size:3rem;">YAYYYYY 💖</h1>
