@@ -55,7 +55,7 @@ h1 {
 const yesBtn = document.getElementById('yesBtn');
 const noBtn = document.getElementById('noBtn');
 
-const offsetDistance = 80; // 2cm
+const offsetDistance = 80; // ~2cm
 let offsetX = offsetDistance;
 let offsetY = offsetDistance;
 
@@ -63,10 +63,14 @@ let targetX = 0;
 let targetY = 0;
 const speed = 0.15;
 
-// Set initial position of No button **next to Yes button** after page loads
+// Track last mouse position to detect direction
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+// Set initial position of No button next to Yes button
 function setInitialPosition() {
   const yesRect = yesBtn.getBoundingClientRect();
-  targetX = yesRect.right + 20; // 20px gap to the right
+  targetX = yesRect.right + 20; // 20px gap
   targetY = yesRect.top;
   noBtn.style.left = targetX + 'px';
   noBtn.style.top = targetY + 'px';
@@ -101,26 +105,36 @@ document.addEventListener('mousemove', (e) => {
   const proximity = 150;
 
   if(distance < proximity){
+    // Detect cursor movement direction
+    const deltaX = cursorX - lastMouseX;
+    const deltaY = cursorY - lastMouseY;
+
+    // Move No button in same direction cursor approached
+    offsetX = (deltaX >= 0 ? offsetDistance : -offsetDistance);
+    offsetY = (deltaY >= 0 ? offsetDistance : -offsetDistance);
+
     let newX = cursorX + offsetX;
     let newY = cursorY + offsetY;
 
+    // Screen bounds
     const minX = 0;
     const minY = 0;
     const maxX = window.innerWidth - rect.width;
     const maxY = window.innerHeight - rect.height;
 
-    // Right-edge check
-    if(newX + rect.width > window.innerWidth) offsetX = -offsetDistance;
-    // Left-edge check
-    if(newX < 0) offsetX = offsetDistance;
-    // Bottom-edge check
-    if(newY + rect.height > window.innerHeight) offsetY = -offsetDistance;
-    // Top-edge check
-    if(newY < 0) offsetY = offsetDistance;
+    // Flip offset if it would go out of screen
+    if(newX < minX) offsetX = Math.abs(offsetX);
+    if(newX > maxX) offsetX = -Math.abs(offsetX);
+
+    if(newY < minY) offsetY = Math.abs(offsetY);
+    if(newY > maxY) offsetY = -Math.abs(offsetY);
 
     targetX = cursorX + offsetX;
     targetY = cursorY + offsetY;
   }
+
+  lastMouseX = cursorX;
+  lastMouseY = cursorY;
 });
 
 // Yes button click
