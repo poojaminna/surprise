@@ -19,45 +19,47 @@ body {
 
 .container {
     text-align: center;
+    position: relative;
 }
 
 h1 {
     color: white;
-    margin-bottom: 40px;
+    margin-bottom: 50px;
     font-size: 2.5rem;
 }
 
-.buttons {
+/* Button row */
+.button-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
     position: relative;
-    width: 500px;
-    height: 250px;
-    margin: auto;
 }
 
+/* Fixed button size */
 button {
-    padding: 15px 30px;
+    width: 130px;
+    height: 50px;
     font-size: 18px;
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    transition: transform 0.2s ease;
 }
 
+/* Yes button */
 #yesBtn {
     background-color: #ff4d6d;
     color: white;
 }
 
-#yesBtn:hover {
-    transform: scale(1.15);
-}
-
-/* Invisible proximity wrapper */
+/* No wrapper (invisible proximity zone) */
 .no-wrapper {
-    position: absolute;
+    position: relative;
     padding: 40px; /* ~1cm invisible space */
 }
 
+/* No button */
 #noBtn {
     background-color: white;
     color: #ff4d6d;
@@ -69,7 +71,8 @@ button {
 
 <div class="container">
     <h1>Will You Be My Valentine? 💕</h1>
-    <div class="buttons">
+
+    <div class="button-row">
         <button id="yesBtn">Yes 💖</button>
 
         <div class="no-wrapper" id="noWrapper">
@@ -81,11 +84,19 @@ button {
 <script>
 const wrapper = document.getElementById("noWrapper");
 
-let posX = 250;
-let posY = 80;
+let posX = 0;
+let posY = 0;
 
-wrapper.style.left = posX + "px";
-wrapper.style.top = posY + "px";
+// Convert wrapper to absolute after layout loads
+window.onload = () => {
+    const rect = wrapper.getBoundingClientRect();
+    posX = rect.left;
+    posY = rect.top;
+
+    wrapper.style.position = "absolute";
+    wrapper.style.left = posX + "px";
+    wrapper.style.top = posY + "px";
+};
 
 document.addEventListener("mousemove", function(e) {
 
@@ -94,41 +105,10 @@ document.addEventListener("mousemove", function(e) {
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
-    const distanceX = e.clientX - centerX;
-    const distanceY = e.clientY - centerY;
+    const dx = e.clientX - centerX;
+    const dy = e.clientY - centerY;
 
-    const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const proximity = 150;
 
-    const proximity = 150; // how close before it runs
-
-    if (distance < proximity) {
-
-        // Speed increases when closer
-        const force = (proximity - distance) / proximity;
-
-        posX -= distanceX * 0.4 * force;
-        posY -= distanceY * 0.4 * force;
-
-        const maxX = window.innerWidth - rect.width;
-        const maxY = window.innerHeight - rect.height;
-
-        posX = Math.max(0, Math.min(posX, maxX));
-        posY = Math.max(0, Math.min(posY, maxY));
-
-        wrapper.style.left = posX + "px";
-        wrapper.style.top = posY + "px";
-    }
-});
-
-document.getElementById("yesBtn").addEventListener("click", function() {
-    document.body.innerHTML = `
-        <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#ff9a9e,#fad0c4);flex-direction:column;">
-            <h1 style="color:white;font-size:3rem;">YAYYYYY 💖</h1>
-            <h2 style="color:white;">I knew you'd say yes 😘</h2>
-        </div>
-    `;
-});
-</script>
-
-</body>
-</html>
+    if (distance < proxim
