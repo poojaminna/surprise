@@ -23,92 +23,98 @@ h1 {
   font-size: 2.5rem;
 }
 
-/* Yes button */
-#yesBtn {
+/* Buttons */
+#yesBtn, #noBtn {
   width: 130px;
   height: 50px;
   font-size: 18px;
   border: none;
   border-radius: 30px;
   cursor: pointer;
+}
+
+#yesBtn {
   background-color: #ff4d6d;
   color: white;
 }
 
-/* No button wrapper */
-#noWrapper {
-  position: absolute;
-}
-
-/* No button */
 #noBtn {
-  width: 130px;
-  height: 50px;
-  font-size: 18px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
   background-color: white;
   color: #ff4d6d;
+  position: absolute; /* Free to move anywhere */
 }
 </style>
 </head>
 <body>
 
 <h1>Will You Be My Valentine? 💕</h1>
-
-<!-- Yes button stays fixed -->
 <button id="yesBtn">Yes 💖</button>
-
-<!-- No button starts near Yes button -->
-<div id="noWrapper" style="left: 180px; top: calc(50% - 25px);">
-  <button id="noBtn">No 💔</button>
-</div>
+<button id="noBtn" style="left: 180px; top: 50%;">No 💔</button>
 
 <script>
-const wrapper = document.getElementById("noWrapper");
-const offset = 80; // diagonal offset from cursor
-let posX = parseInt(wrapper.style.left);
-let posY = parseInt(wrapper.style.top);
+const noBtn = document.getElementById('noBtn');
+const offsetDistance = 80; // ~2cm
+let offsetX = offsetDistance;
+let offsetY = offsetDistance;
+let targetX = parseFloat(noBtn.style.left);
+let targetY = parseFloat(noBtn.style.top);
 
-// Helper to keep button inside viewport
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(value, max));
+// Smooth gliding factor
+const speed = 0.15;
+
+// Update loop
+function animate() {
+  // Smoothly move to target
+  const currentX = parseFloat(noBtn.style.left);
+  const currentY = parseFloat(noBtn.style.top);
+  
+  const dx = targetX - currentX;
+  const dy = targetY - currentY;
+
+  noBtn.style.left = currentX + dx * speed + 'px';
+  noBtn.style.top  = currentY + dy * speed + 'px';
+
+  requestAnimationFrame(animate);
 }
 
-document.addEventListener("mousemove", (e) => {
-  const rect = wrapper.getBoundingClientRect();
+// Start animation
+animate();
+
+// Mouse move detection
+document.addEventListener('mousemove', (e) => {
+  const rect = noBtn.getBoundingClientRect();
   const cursorX = e.clientX;
   const cursorY = e.clientY;
 
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
-  const dx = cursorX - centerX;
-  const dy = cursorY - centerY;
-  const distance = Math.sqrt(dx*dx + dy*dy);
-
-  const proximity = 150;
+  const distance = Math.sqrt((cursorX - centerX)**2 + (cursorY - centerY)**2);
+  const proximity = 150; // start following when close
 
   if(distance < proximity){
-    // Position No button diagonally away from cursor
-    let newX = cursorX + offset;
-    let newY = cursorY + offset;
+    // Default: bottom-right
+    let newX = cursorX + offsetX;
+    let newY = cursorY + offsetY;
 
-    // Clamp to viewport
     const maxX = window.innerWidth - rect.width;
     const maxY = window.innerHeight - rect.height;
+    const minX = 0;
+    const minY = 0;
 
-    posX = clamp(newX, 0, maxX);
-    posY = clamp(newY, 0, maxY);
+    // If would go off screen, invert direction
+    if(newX > maxX) offsetX = -offsetDistance;
+    if(newY > maxY) offsetY = -offsetDistance;
+    if(newX < minX) offsetX = offsetDistance;
+    if(newY < minY) offsetY = offsetDistance;
 
-    wrapper.style.left = posX + "px";
-    wrapper.style.top = posY + "px";
+    targetX = cursorX + offsetX;
+    targetY = cursorY + offsetY;
   }
 });
 
 // Yes button click
-document.getElementById("yesBtn").addEventListener("click", () => {
+document.getElementById('yesBtn').addEventListener('click', () => {
   document.body.innerHTML = `
     <div style="display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#ff9a9e,#fad0c4);flex-direction:column;">
       <h1 style="color:white;font-size:3rem;">YAYYYYY 💖</h1>
